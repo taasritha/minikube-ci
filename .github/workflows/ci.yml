@@ -8,27 +8,42 @@ on:
 jobs:
   minikube-deployment:
     runs-on: ubuntu-latest
-    
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-    - name: Set up Minikube
-      uses: medyagh/setup-minikube@v2
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y apt-transport-https curl virtualbox virtualbox-ext-pack
 
-    - name: Start Minikube cluster
-      run: minikube start --driver=docker
+      - name: Install Minikube
+        run: |
+          curl -LO https://storage.googleapis.com/minikube/releases/v1.25.2/minikube-linux-amd64
+          sudo mv minikube-linux-amd64 /usr/local/bin/minikube
+          sudo chmod +x /usr/local/bin/minikube
 
-    - name: Apply Kubernetes resources
-      run: kubectl apply -f deploy/k8s.yaml
+      - name: Start Minikube
+        run: |
+          minikube start --driver=none
 
-    - name: Wait for pods to be ready
-      run: kubectl wait --for=condition=ready pod -l app=my-app --timeout=120s
+      - name: Install kubectl
+        run: |
+          curl -LO https://dl.k8s.io/release/v1.22.3/bin/linux/amd64/kubectl
+          sudo mv kubectl /usr/local/bin/kubectl
+          sudo chmod +x /usr/local/bin/kubectl
 
-    - name: Check Pod status
-      run: kubectl get pods
+      - name: Apply Kubernetes resources
+        run: kubectl apply -f deploy/k8s.yaml
 
-    - name: Get service URL
-      run: |
-        minikube service my-app-service --url
-        curl $(minikube service my-app-service --url)
+      - name: Wait for pods to be ready
+        run: kubectl wait --for=condition=ready pod -l app=my-app --timeout=120s
+
+      - name: Check Pod status
+        run: kubectl get pods
+
+      - name: Get service URL
+        run: |
+          minikube service my-app-service --url
+          curl $(minikube service my-app-service --url)
