@@ -1,0 +1,34 @@
+name: CI with Minikube
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  minikube-deployment:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Minikube
+      uses: medyagh/setup-minikube@v2
+
+    - name: Start Minikube cluster
+      run: minikube start --driver=docker
+
+    - name: Apply Kubernetes resources
+      run: kubectl apply -f deploy/k8s.yaml
+
+    - name: Wait for pods to be ready
+      run: kubectl wait --for=condition=ready pod -l app=my-app --timeout=120s
+
+    - name: Check Pod status
+      run: kubectl get pods
+
+    - name: Get service URL
+      run: |
+        minikube service my-app-service --url
+        curl $(minikube service my-app-service --url)
