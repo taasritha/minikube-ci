@@ -16,7 +16,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y apt-transport-https curl virtualbox virtualbox-ext-pack
+          sudo apt-get install -y curl
 
       - name: Install Minikube
         run: |
@@ -26,7 +26,7 @@ jobs:
 
       - name: Start Minikube
         run: |
-          minikube start --driver=none
+          minikube start --driver=docker
 
       - name: Install kubectl
         run: |
